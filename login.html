@@ -277,15 +277,31 @@
                         window.location.href = 'index.html';
                     } else {
                         // Default admin
-                        if (user.email === 'nhan.phamtien@shopee.com') {
+                        if (user.email.toLowerCase() === 'nhan.phamtien@shopee.com') {
                             localStorage.setItem('kpi_user', JSON.stringify({
                                 email: user.email,
                                 role: 'owner',
                                 warehouses: ['ALL']
                             }));
                             window.location.href = 'index.html';
+                        } else {
+                            auth.signOut();
+                            const errorDiv = document.getElementById('errorMessage');
+                            errorDiv.textContent = 'User not found in Database.';
+                            errorDiv.style.display = 'block';
+                            const submitBtn = document.getElementById('submitBtn');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = 'Sign In';
                         }
                     }
+                }).catch(err => {
+                    auth.signOut();
+                    const errorDiv = document.getElementById('errorMessage');
+                    errorDiv.textContent = 'Lỗi truy cập Database (Cần bật Test Mode trong Realtime Database): ' + err.message;
+                    errorDiv.style.display = 'block';
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Sign In';
                 });
             }
         });
