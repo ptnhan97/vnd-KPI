@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual KPI Tracker</title>
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("Lỗi Giao Diện (JS): " + msg + "\nDòng: " + line);
+            return false;
+        };
+        window.onunhandledrejection = function(e) {
+            alert("Lỗi Giao Diện (Promise): " + e.reason);
+        };
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-title">
+                <div class="logo-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                <div>
+                    <h1>Individual KPI Tracker</h1>
+                    <p>Hourly Performance — Pivot Table View</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="date-badge"><i class="fa-regular fa-calendar"></i> 
+                    <input type="date" id="date-picker" style="background:transparent; border:none; color:white; font-family:inherit; outline:none; font-weight:600; font-size:14px; cursor:pointer;">
+                </div>
+                <div class="live-badge"><span class="dot"></span> Live</div>
+                <button class="btn btn-primary"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                <button class="btn btn-secondary"><i class="fa-solid fa-gear"></i> Config</button>
+                <div class="user-profile">
+                    <div class="avatar">P</div>
+                    <span>Pham Tien Nhan</span>
+                </div>
+                <button class="btn btn-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <section class="stats-grid">
+            <div class="stat-card" style="border-top: 3px solid #8b5cf6;">
+                <div class="stat-header">
+                    <h3>TỔNG NHÂN VIÊN</h3>
+                    <div class="icon-box" style="color: #8b5cf6; background: rgba(139, 92, 246, 0.1);"><i class="fa-solid fa-user-group"></i></div>
+                </div>
+                <div class="stat-value">20</div>
+                <div class="stat-desc">Nhân viên đang hoạt động</div>
+            </div>
+            <div class="stat-card" style="border-top: 3px solid #06b6d4;">
+                <div class="stat-header">
+                    <h3>TỔNG ĐƠN HÀNG</h3>
+                    <div class="icon-box" style="color: #06b6d4; background: rgba(6, 182, 212, 0.1);"><i class="fa-solid fa-box-open"></i></div>
+                </div>
+                <div class="stat-value">2,909</div>
+                <div class="stat-desc">Đơn hàng xử lý hôm nay</div>
+            </div>
+            <div class="stat-card" style="border-top: 3px solid #10b981;">
+                <div class="stat-header">
+                    <h3>TỔNG ITEMS</h3>
+                    <div class="icon-box" style="color: #10b981; background: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-cubes"></i></div>
+                </div>
+                <div class="stat-value">3,758</div>
+                <div class="stat-desc">Items xử lý hôm nay</div>
+            </div>
+            <div class="stat-card" style="border-top: 3px solid #f59e0b;">
+                <div class="stat-header">
+                    <h3>TRUNG BÌNH / GIỜ</h3>
+                    <div class="icon-box" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                </div>
+                <div class="stat-value">64</div>
+                <div class="stat-desc">Trung bình mỗi giờ / nhân viên</div>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="filters-section">
+            <div class="filters-header">
+                <h2><i class="fa-solid fa-filter"></i> Bộ lọc</h2>
+                <div class="active-badge">2 active</div>
+            </div>
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>WAREHOUSE</label>
+                    <select id="warehouse-filter">
+                        <option value="VNDL">VNDL</option>
+                        <option value="VNDB">VNDB</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>TEAM</label>
+                    <select id="team-filter">
+                        <option value="all">Tất cả Team</option>
+                        <option value="Inbound">Inbound</option>
+                        <option value="Inventory">Inventory</option>
+                        <option value="Return Inbound">Return Inbound</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>TASK</label>
+                    <select id="task-filter">
+                        <option value="all">Tất cả Task</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>EMAIL</label>
+                    <select id="email-filter">
+                        <option value="all">Tất cả Email</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>VIEW BY</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="view-item"><i class="fa-solid fa-cube"></i> Item</button>
+                        <button class="toggle-btn" id="view-order"><i class="fa-solid fa-file-invoice"></i> Order</button>
+                    </div>
+                </div>
+                <button class="btn btn-outline-danger"><i class="fa-solid fa-xmark"></i> Xóa bộ lọc</button>
+            </div>
+        </section>
+
+        <!-- Pivot Table -->
+        <section class="table-section">
+            <div class="table-header">
+                <div class="table-title">
+                    <h2><i class="fa-solid fa-table-list"></i> Pivot — KPI theo giờ</h2>
+                    <span class="viewing-badge" id="current-viewing-badge">Viewing: Item</span>
+                    <span class="target-info"><i class="fa-solid fa-flag"></i> Target</span>
+                    <span id="target-badges-container">
+                        <!-- Sẽ render bằng JS -->
+                    </span>
+                </div>
+                <div class="table-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Tìm kiếm nhân viên...">
+                    </div>
+                    <button class="btn btn-outline-success"><i class="fa-solid fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="kpi-table">
+                    <thead>
+                        <tr id="table-head-row">
+                            <th>#</th>
+                            <th>EMAIL</th>
+                            <th>STAFF NAME</th>
+                            <th class="col-total sort-header-cell" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <select id="sort-metric" class="sort-select" style="background: transparent; color: var(--primary); border: none; font-weight: 600; font-size: 12px; text-transform: uppercase; cursor: pointer; outline: none; appearance: none; padding-right: 0;">
+                                    <option value="productivity">Productivity</option>
+                                    <option value="items">Total items</option>
+                                    <option value="manhour">Total manhour</option>
+                                </select>
+                                <i class="fa-solid fa-arrow-down sort-icon" id="sort-order-icon" style="cursor: pointer; color: var(--primary);"></i>
+                            </th>
+                            <!-- Dynamic hour columns will be injected here by JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>

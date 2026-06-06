@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Individual KPI Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-secondary: #64748b;
+            --primary: #f97316; /* Orange theme for admin */
+            --primary-hover: #ea580c;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-icon {
+            background: #fff7ed;
+            color: var(--primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-secondary {
+            background-color: #475569;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: var(--text-secondary);
+        }
+
+        .filters-card {
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto auto;
+            gap: 16px;
+            align-items: end;
+            margin-top: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8fafc;
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        td {
+            padding: 16px 30px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .role-owner { background: #fef3c7; color: #d97706; }
+        .role-supervisor { background: #ffedd5; color: #ea580c; }
+        .role-user { background: #e0e7ff; color: #4f46e5; }
+
+        .status-badge {
+            color: #16a34a;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .status-badge.blocked {
+            color: #ef4444;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: none;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            color: white;
+            font-size: 13px;
+        }
+
+        .btn-edit { background: #3b82f6; }
+        .btn-block { background: #ef4444; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: flex-end; gap: 10px;
+        }
+
+        .wh-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .wh-item {
+            display: flex; align-items: center; gap: 8px; font-size: 14px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        
+        <div class="header">
+            <div class="title-area">
+                <div class="title-icon"><i class="fa-solid fa-users-gear"></i></div>
+                <div>
+                    <h1>User Management</h1>
+                    <p>Create and manage user accounts</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-open-modal"><i class="fa-solid fa-user-plus"></i> Create New User</button>
+        </div>
+
+        <div class="filters-card">
+            <h4><i class="fa-solid fa-filter"></i> Filters</h4>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="filter-email" class="form-control" placeholder="Search by email...">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="filter-role" class="form-control">
+                        <option value="">All Roles</option>
+                        <option value="owner">Owner</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="user">User</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Current Warehouse</label>
+                    <input type="text" id="filter-wh" class="form-control" placeholder="e.g. VNA">
+                </div>
+                <button class="btn btn-primary" style="height: 40px;" id="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                <button class="btn btn-outline" style="height: 40px;" id="btn-clear-filter"><i class="fa-solid fa-xmark"></i> Clear</button>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Users List</h3>
+                <button class="btn btn-secondary" onclick="loadUsers()"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-envelope"></i> Email</th>
+                        <th><i class="fa-solid fa-user-tie"></i> Role</th>
+                        <th><i class="fa-solid fa-warehouse"></i> Warehouse Access</th>
+                        <th><i class="fa-solid fa-lock"></i> Status</th>
+                        <th><i class="fa-solid fa-gears"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <!-- Data here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Create New User</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal()"></i>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="user-id">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Email</label>
+                    <input type="email" id="user-email" class="form-control" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;" id="password-group">
+                    <label>Password</label>
+                    <input type="password" id="user-pass" class="form-control" placeholder="Leave blank to keep current password (edit mode)">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Role</label>
+                    <select id="user-role" class="form-control">
+                        <option value="user">User</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="owner">Owner</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Warehouse Access</label>
+                    <div class="wh-grid" id="wh-checkboxes">
+                        <label class="wh-item"><input type="checkbox" value="ALL"> ALL</label>
+                        <label class="wh-item"><input type="checkbox" value="VNA"> VN - VNA</label>
+                        <label class="wh-item"><input type="checkbox" value="VNB"> VN - VNB</label>
+                        <label class="wh-item"><input type="checkbox" value="VNCB"> VN - VNCB</label>
+                        <label class="wh-item"><input type="checkbox" value="VNCL"> VN - VNCL</label>
+                        <label class="wh-item"><input type="checkbox" value="VNDB"> VN - VNDB</label>
+                        <label class="wh-item"><input type="checkbox" value="VNDL"> VN - VNDL</label>
+                        <label class="wh-item"><input type="checkbox" value="VNN"> VN - VNN</label>
+                        <label class="wh-item"><input type="checkbox" value="VNNC"> VN - VNNC</label>
+                        <label class="wh-item"><input type="checkbox" value="VNNL"> VN - VNNL</label>
+                        <label class="wh-item"><input type="checkbox" value="VNS"> VN - VNS</label>
+                        <label class="wh-item"><input type="checkbox" value="VNV"> VN - VNV</label>
+                        <label class="wh-item"><input type="checkbox" value="VNVL"> VN - VNVL</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 16px;" id="status-group">
+                    <label>Account Status</label>
+                    <select id="user-status" class="form-control">
+                        <option value="true">Active (Unblocked)</option>
+                        <option value="false">Blocked</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveUser()" id="btn-save">Save User</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check Authentication
+        let currentUser = null;
+        let allUsers = [];
+
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const userStr = localStorage.getItem('kpi_user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (currentUser.role === 'user') {
+                    window.location.href = 'index.html';
+                } else {
+                    loadUsers();
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function loadUsers() {
+            try {
+                // To display all users, we read from Realtime DB
+                db.ref('users').once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    allUsers = [];
+                    if (data) {
+                        for (let uid in data) {
+                            allUsers.push({ id: uid, ...data[uid] });
+                        }
+                    }
+                    // Owner is hardcoded if not in DB
+                    if (!allUsers.find(u => u.email === 'nhan.phamtien@shopee.com')) {
+                        allUsers.push({ id: 'admin', email: 'nhan.phamtien@shopee.com', role: 'owner', warehouses: ['ALL'], is_active: true });
+                    }
+                    renderUsers(allUsers);
+                });
+            } catch (err) {
+                alert("Failed to load users from Database.");
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+            
+            users.forEach(u => {
+                const roleBadge = `<span class="role-badge role-${u.role}">${u.role}</span>`;
+                const status = u.is_active ? `<span class="status-badge"><i class="fa-solid fa-check"></i> Active</span>` 
+                                         : `<span class="status-badge blocked"><i class="fa-solid fa-ban"></i> Blocked</span>`;
+                
+                const warehouses = (u.warehouses || []).join(', ');
+                
+                // Permission logic
+                let canEdit = true;
+                if (currentUser.role === 'supervisor' && u.role === 'owner') canEdit = false;
+                if (u.id === 'admin' && currentUser.email !== 'nhan.phamtien@shopee.com') canEdit = false;
+                
+                const actionBtns = canEdit ? `
+                    <div class="action-btns">
+                        <button class="btn-icon btn-edit" onclick='openEditModal(${JSON.stringify(u)})'><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                ` : `<span style="font-size:12px; color:#94a3b8;">No access</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${u.email}</strong></td>
+                        <td>${roleBadge}</td>
+                        <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${warehouses}">${warehouses}</td>
+                        <td>${status}</td>
+                        <td>${actionBtns}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Search logic
+        document.getElementById('btn-search').addEventListener('click', () => {
+            const email = document.getElementById('filter-email').value.toLowerCase();
+            const role = document.getElementById('filter-role').value;
+            const wh = document.getElementById('filter-wh').value.toUpperCase();
+            
+            const filtered = allUsers.filter(u => {
+                const matchEmail = u.email.toLowerCase().includes(email);
+                const matchRole = role ? u.role === role : true;
+                const matchWh = wh ? ((u.warehouses || []).includes("ALL") || (u.warehouses || []).includes(wh)) : true;
+                return matchEmail && matchRole && matchWh;
+            });
+            renderUsers(filtered);
+        });
+
+        document.getElementById('btn-clear-filter').addEventListener('click', () => {
+            document.getElementById('filter-email').value = '';
+            document.getElementById('filter-role').value = '';
+            document.getElementById('filter-wh').value = '';
+            renderUsers(allUsers);
+        });
+
+        // Modal logic
+        const modal = document.getElementById('userModal');
+        let isEditMode = false;
+
+        document.getElementById('btn-open-modal').addEventListener('click', () => {
+            isEditMode = false;
+            document.getElementById('modal-title').textContent = "Create New User";
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-email').value = '';
+            document.getElementById('user-email').disabled = false;
+            document.getElementById('user-pass').value = '';
+            document.getElementById('user-role').value = 'user';
+            
+            document.getElementById('status-group').style.display = 'none';
+            document.getElementById('user-status').value = 'true';
+            
+            // Limit supervisor role
+            if (currentUser.role === 'supervisor') {
+                document.getElementById('user-role').innerHTML = `
+                    <option value="user">User</option>
+                    <option value="supervisor">Supervisor</option>
+                `;
+            }
+            
+            document.querySelectorAll('#wh-checkboxes input').forEach(cb => cb.checked = false);
+            modal.style.display = 'flex';
+        });
+
+        window.openEditModal = function(user) {
+            isEditMode = true;
+            document.getElementById('modal-title').textContent = "Edit User";
+            document.getElementById('user-id').value = user.id;
+            document.getElementById('user-email').value = user.email;
+            document.getElementById('user-email').disabled = true; // Email is not editable
+            document.getElementById('user-pass').value = '';
+            
+            // Limit supervisor from changing roles
+            if (currentUser.role === 'supervisor') {
+                document.getElementById('user-role').innerHTML = `<option value="${user.role}">${user.role}</option>`;
+                document.getElementById('user-role').disabled = true;
+                
+                document.getElementById('user-status').innerHTML = `<option value="${user.is_active}">Current Status</option>`;
+                document.getElementById('user-status').disabled = true;
+            } else {
+                document.getElementById('user-role').disabled = false;
+                document.getElementById('user-role').value = user.role;
+                document.getElementById('user-status').disabled = false;
+                document.getElementById('user-status').value = user.is_active ? 'true' : 'false';
+            }
+            
+            document.getElementById('status-group').style.display = 'block';
+
+            document.querySelectorAll('#wh-checkboxes input').forEach(cb => {
+                cb.checked = (user.warehouses || []).includes(cb.value);
+            });
+            
+            modal.style.display = 'flex';
+        };
+
+        window.closeModal = function() {
+            modal.style.display = 'none';
+        };
+
+        async function saveUser() {
+            const id = document.getElementById('user-id').value;
+            let email = document.getElementById('user-email').value.trim();
+            const password = document.getElementById('user-pass').value;
+            const role = document.getElementById('user-role').value;
+            const is_active = document.getElementById('user-status').value === 'true';
+            
+            if (!email.includes('@')) {
+                email = email + '@shopee.com';
+            }
+            
+            const whCheckboxes = document.querySelectorAll('#wh-checkboxes input:checked');
+            const warehouses = Array.from(whCheckboxes).map(cb => cb.value);
+            
+            if (!isEditMode && (!email || !password)) {
+                alert("Please fill email and password for new user.");
+                return;
+            }
+            
+            if (warehouses.length === 0) {
+                alert("Please select at least one warehouse.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-save');
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                if (isEditMode) {
+                    if (id === 'admin') {
+                        alert("Không thể sửa admin mặc định. Firebase Auth quản lý account này.");
+                    } else {
+                        // Cập nhật thông tin trong Database
+                        await db.ref('users/' + id).update({
+                            role: role,
+                            warehouses: warehouses,
+                            is_active: is_active
+                        });
+                        // Đổi password (yêu cầu tạo Secondary App để update, hơi phức tạp ở frontend nên tạm bỏ qua đổi mật khẩu ở đây hoặc dùng Google Identity)
+                        if (password) {
+                            alert("Vui lòng dùng tính năng Quên Mật Khẩu trên Firebase để đổi mật khẩu. Cập nhật quyền thành công!");
+                        }
+                    }
+                } else {
+                    // Create new user using a Secondary Firebase App so the current user is not logged out
+                    const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                    const userCredential = await secondaryApp.auth().createUserWithEmailAndPassword(email, password);
+                    await db.ref('users/' + userCredential.user.uid).set({
+                        email: email,
+                        role: role,
+                        warehouses: warehouses,
+                        is_active: is_active
+                    });
+                    await secondaryApp.auth().signOut();
+                    secondaryApp.delete();
+                }
+                
+                closeModal();
+                loadUsers();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.innerHTML = 'Save User';
+                btn.disabled = false;
+            }
+        }
+        
+        window.saveUser = saveUser;
+    </script>
+</body>
+</html>
