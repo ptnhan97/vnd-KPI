@@ -169,8 +169,17 @@ function initApp() {
         });
     }
 
-    DOM.warehouseFilter.addEventListener('change', updateTargetsUI);
-    DOM.taskFilter.addEventListener('change', updateTargetsUI);
+    DOM.warehouseFilter.addEventListener('change', () => {
+        updateTargetsUI();
+        fetchData(false, false);
+    });
+    DOM.taskFilter.addEventListener('change', () => {
+        updateTargetsUI();
+        fetchData(false, false);
+    });
+    DOM.teamFilter.addEventListener('change', () => {
+        fetchData(false, false);
+    });
     DOM.datePicker.addEventListener('change', () => fetchData(false, false));
     DOM.refreshBtn.addEventListener('click', () => fetchData(false, true));
     DOM.viewingBadges.item.addEventListener('click', () => setView('item'));
@@ -290,6 +299,18 @@ function initApp() {
         const task = DOM.taskFilter.value;
         const dateStr = DOM.datePicker.value;
         
+        if (team === 'all' || task === 'all') {
+            GLOBAL_DATA = [];
+            window.DYNAMIC_HOURS = [];
+            DOM.tableHead.innerHTML = '';
+            DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px; color: var(--text-secondary); font-size: 15px;">Vui lòng chọn Team và Task để xem dữ liệu.</td></tr>';
+            DOM.totalActiveUsersBadge.textContent = "0";
+            DOM.totalOrdersBadge.textContent = "0";
+            DOM.totalItemsBadge.textContent = "0";
+            DOM.avgPerHourBadge.textContent = "0";
+            return;
+        }
+
         if (forceSync || !isRetry) {
             DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px; color:var(--text-secondary)">Đang tải dữ liệu từ Cloud...</p></td></tr>';
         }
