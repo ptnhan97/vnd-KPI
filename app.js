@@ -453,7 +453,6 @@ function initApp() {
     }
 
     window.renderTable = renderTable;
-    window.sortData = sortData;
     
     // Tự động fetch data khi load trang xong
     fetchData();
