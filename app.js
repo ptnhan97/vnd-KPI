@@ -65,7 +65,10 @@ function initApp() {
         'all': [],
         'Inbound': ['QC', 'Receive', 'Boxing', 'Putaway'],
         'Inventory': ['Cycle count', 'Transfer', 'Replenishment', 'TBS'],
-        'Return Inbound': ['Check', 'Receive', 'Putaway']
+        'Return Inbound': {
+            'item': ['Check', 'Putaway'],
+            'order': ['FD', 'Damage']
+        }
     };
 
     const DOM = {
@@ -212,7 +215,12 @@ function initApp() {
 
     function updateTaskOptions() {
         const selectedTeam = DOM.teamFilter.value;
-        const tasks = tasksByTeam[selectedTeam] || [];
+        let tasks = [];
+        if (selectedTeam === 'Return Inbound') {
+            tasks = tasksByTeam['Return Inbound'][currentView] || [];
+        } else {
+            tasks = tasksByTeam[selectedTeam] || [];
+        }
         DOM.taskFilter.innerHTML = '<option value="all">Tất cả Task</option>';
         tasks.forEach(task => {
             const option = document.createElement('option');
@@ -266,8 +274,14 @@ function initApp() {
         } else {
             DOM.currentViewingBadge.textContent = "Viewing: Order";
         }
-        updateTargetsUI();
-        renderTable();
+        
+        if (DOM.teamFilter.value === 'Return Inbound') {
+            updateTaskOptions();
+            fetchData();
+        } else {
+            updateTargetsUI();
+            renderTable();
+        }
     };
 
     async function fetchData() {
