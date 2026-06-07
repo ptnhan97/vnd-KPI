@@ -134,9 +134,15 @@ function initApp() {
     let CURRENT_SORT_ORDER = 'desc'; // 'desc' hoặc 'asc'
     let currentView = 'item'; // 'item' or 'order'
 
-    // Set datepicker to today
-    const today = new Date().toISOString().split('T')[0];
+    // Set datepicker to today and limit to past 5 days
+    const todayObj = new Date();
+    const today = todayObj.toISOString().split('T')[0];
     DOM.datePicker.value = today;
+    DOM.datePicker.max = today;
+    
+    const minDateObj = new Date();
+    minDateObj.setDate(todayObj.getDate() - 5);
+    DOM.datePicker.min = minDateObj.toISOString().split('T')[0];
 
     // Listeners
     DOM.teamFilter.addEventListener('change', () => {
