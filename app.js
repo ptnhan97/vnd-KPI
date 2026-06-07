@@ -171,8 +171,8 @@ function initApp() {
 
     DOM.warehouseFilter.addEventListener('change', updateTargetsUI);
     DOM.taskFilter.addEventListener('change', updateTargetsUI);
-    DOM.datePicker.addEventListener('change', fetchData);
-    DOM.refreshBtn.addEventListener('click', fetchData);
+    DOM.datePicker.addEventListener('change', () => fetchData(false, false));
+    DOM.refreshBtn.addEventListener('click', () => fetchData(false, true));
     DOM.viewingBadges.item.addEventListener('click', () => setView('item'));
     DOM.viewingBadges.order.addEventListener('click', () => setView('order'));
     DOM.emailFilter.addEventListener('change', renderTable);
@@ -284,15 +284,22 @@ function initApp() {
         }
     };
 
-    async function fetchData() {
+    async function fetchData(isRetry = false, forceSync = false) {
         const warehouse = DOM.warehouseFilter.value;
         const team = DOM.teamFilter.value;
         const task = DOM.taskFilter.value;
         const dateStr = DOM.datePicker.value;
         
-        DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px; color:var(--text-secondary)">Đang tải dữ liệu từ Cloud...</p></td></tr>';
+        if (forceSync || !isRetry) {
+            DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align: center; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px; color:var(--text-secondary)">Đang tải dữ liệu từ Cloud...</p></td></tr>';
+        }
 
         try {
+            if (forceSync) {
+                triggerBotSync(dateStr, team, warehouse);
+                return;
+            }
+            
             const dbRef = db.ref(`dashboard/${dateStr}/${warehouse}/${team}/${task}`);
             dbRef.once('value', (snapshot) => {
                 const data = snapshot.val();
@@ -316,10 +323,15 @@ function initApp() {
                         DOM.currentViewingBadge.innerHTML = `Viewing: ${currentView.charAt(0).toUpperCase() + currentView.slice(1)} <span style="margin-left: 10px; opacity: 0.7; font-size: 11px;">Cập nhật cuối: ${data.updated_at}</span>`;
                     }
                 } else {
-                    DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Không có dữ liệu cho Ngày/Kho/Team/Task này.</td></tr>';
                     GLOBAL_DATA = [];
                     window.DYNAMIC_HOURS = [];
                     updateStatsUI();
+                    
+                    if (!isRetry) {
+                        triggerBotSync(dateStr, team, warehouse);
+                    } else {
+                        DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Không có dữ liệu cho Ngày/Kho/Team/Task này.</td></tr>';
+                    }
                 }
             }, (error) => {
                 DOM.tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Lỗi đọc Firebase: ${error.message}</td></tr>`;
@@ -328,6 +340,33 @@ function initApp() {
             console.error('Lỗi khi lấy dữ liệu từ Firebase:', error);
             DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Không thể kết nối đến Cloud Database.</td></tr>';
         }
+    }
+
+    function triggerBotSync(dateStr, team, warehouse) {
+        DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #3b82f6; padding: 40px;"><i class="fa-solid fa-cloud-arrow-down fa-bounce fa-2x" style="margin-bottom: 15px;"></i><p style="color:var(--text-secondary)">Dữ liệu chưa có hoặc đang được làm mới.</p><p style="color: #60a5fa; font-weight: 500; font-size: 16px;">Đang ra lệnh cho Bot tải dữ liệu từ Shopee (Sẽ mất khoảng 1-2 phút)...</p></td></tr>';
+        
+        const reqId = Date.now().toString();
+        db.ref(`sync_requests/${reqId}`).set({
+            date: dateStr,
+            team: team,
+            warehouse: warehouse,
+            status: 'pending',
+            timestamp: reqId
+        });
+        
+        db.ref(`sync_requests/${reqId}`).on('value', (reqSnap) => {
+            const reqData = reqSnap.val();
+            if (!reqData) return;
+            if (reqData.status === 'processing') {
+                DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #eab308; padding: 40px;"><i class="fa-solid fa-spinner fa-spin fa-2x" style="margin-bottom: 15px;"></i><p style="color:var(--text-secondary)">Bot đã nhận lệnh.</p><p style="color: #facc15; font-weight: 500; font-size: 16px;">Đang xử lý dữ liệu và tải lên mây...</p></td></tr>';
+            } else if (reqData.status === 'completed') {
+                db.ref(`sync_requests/${reqId}`).off();
+                setTimeout(() => fetchData(true, false), 1000);
+            } else if (reqData.status === 'error') {
+                db.ref(`sync_requests/${reqId}`).off();
+                DOM.tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 40px;"><i class="fa-solid fa-triangle-exclamation fa-2x" style="margin-bottom: 15px;"></i><p style="color:var(--text-secondary)">Bot báo lỗi:</p><p style="color: #f87171; font-weight: 500;">${reqData.error_msg}</p></td></tr>`;
+            }
+        });
     }
 
     function renderTable() {
