@@ -32,7 +32,9 @@ function initApp() {
     // Cập nhật Header UI với User Info
     const userProfileName = document.querySelector('.user-profile span');
     if (userProfileName) {
-        userProfileName.innerHTML = `${currentUser.email}<br><small style="font-size: 11px; opacity: 0.8; text-transform: uppercase;">${currentUser.role}</small>`;
+        let displayRole = currentUser.role;
+        if (displayRole.toLowerCase() === 'owner') displayRole = 'ADMIN';
+        userProfileName.innerHTML = `${currentUser.email}<br><small style="font-size: 11px; opacity: 0.8; text-transform: uppercase;">${displayRole}</small>`;
     }
     const avatar = document.querySelector('.user-profile .avatar');
     if (avatar) {
@@ -346,13 +348,9 @@ function initApp() {
                 } else {
                     GLOBAL_DATA = [];
                     window.DYNAMIC_HOURS = [];
+                    DOM.tableHead.innerHTML = '';
                     updateStatsUI();
-                    
-                    if (!isRetry) {
-                        triggerBotSync(dateStr, team, warehouse);
-                    } else {
-                        DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Không có dữ liệu cho Ngày/Kho/Team/Task này.</td></tr>';
-                    }
+                    DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 40px;">Không có dữ liệu cho Ngày/Kho/Team/Task này.<br><br><span style="font-size: 13px; color: var(--text-secondary);">Nếu bạn chắc chắn có dữ liệu, hãy bấm nút <b>Refresh</b> màu tím ở trên cùng để ra lệnh cho Bot tải số liệu mới về.</span></td></tr>';
                 }
             }, (error) => {
                 DOM.tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 20px;">Lỗi đọc Firebase: ${error.message}</td></tr>`;
