@@ -349,7 +349,10 @@ function initApp() {
                     GLOBAL_DATA = [];
                     window.DYNAMIC_HOURS = [];
                     DOM.tableHead.innerHTML = '';
-                    updateStatsUI();
+                    DOM.totalActiveUsersBadge.textContent = "0";
+                    DOM.totalOrdersBadge.textContent = "0";
+                    DOM.totalItemsBadge.textContent = "0";
+                    DOM.avgPerHourBadge.textContent = "0";
                     DOM.tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color: #ef4444; padding: 40px;">Không có dữ liệu cho Ngày/Kho/Team/Task này.<br><br><span style="font-size: 13px; color: var(--text-secondary);">Nếu bạn chắc chắn có dữ liệu, hãy bấm nút <b>Refresh</b> màu tím ở trên cùng để ra lệnh cho Bot tải số liệu mới về.</span></td></tr>';
                 }
             }, (error) => {
